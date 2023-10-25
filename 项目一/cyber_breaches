@@ -1,0 +1,98 @@
+#!/bin/bash
+#Author: Rongchuan Sun 
+#StudentNumber: 23715251
+
+#Check if the filename is correct
+if [ "$1" != "Cyber_Security_Breaches.tsv" ]
+then
+	echo "Usage: Cyber_Security_Breaches.tsv"
+	exit 1
+fi
+
+#Check if two arguments are entered
+if [ "$#" -ne 2 ]
+then
+	echo "Error: Two arguments are required"
+	exit 1
+fi
+
+#Check if the file exists
+if [ ! -f "$1" ] 
+then 
+	echo "Error: file "$1" not found"
+	exit 1
+fi
+
+#Check if the file is empty
+if [ ! -s "$1" ]
+then
+	echo "Error: file "$1" is empty"
+	exit 1
+fi
+
+#The following code is to get the result of related query. 
+case "$2" in
+	"maxstate")
+		#The argument of max_state is to get the state with the most occurrences in the file
+		#The argument of count_state is to count the number of occurrences
+
+		max_state=$(cut -f2 "$1" | sort | uniq -c | sort -k1 | tail -n1 | cut -d" " -f3)
+		count_state=$(cut -f2 "$1" | sort | uniq -c | sort -k1 | tail -n1 | cut -d" " -f2)
+		echo "State with greatest number of incidents is: $max_state with count $count_state"
+		;;
+
+	"maxyear")
+		#The argument of max_year is to get the year with the most occurrences in the file
+		#The argument of count_year is to count the number of occurrences
+
+		max_year=$(cut -f8 "$1" | sort | uniq -c | sort -k1 | tail -n1 | cut -d" " -f3)
+		count_year=$(cut -f8 "$1" | sort | uniq -c | sort -k1 | tail -n1 | cut -d" " -f2)
+		echo "Year with greatest number of incidents is: $max_year with count $count_year"
+		;;
+
+	#Check strings starting with max and give relevant tips. 
+	max*)
+		echo "The max commands are either maxstate or maxyear."
+		;;
+
+
+	#Check whether the second argument is a four-digit number, and whether is exists in the file.
+	#if exist, output the result.
+	[0-9][0-9][0-9][0-9])
+		if [[ $(cut -f8 "$1" | grep "$2") ]]
+		then 	
+			#The argument of state_name is to find which state occurs the most in a given year
+			#The argument of state_count is to count the number of occurrences
+
+			state_name=$(cut -f2,8 "$1" | sort -k2 | grep "$2" | uniq -c | sort | tail -n1 | cut -c6,7)
+			state_count=$(cut -f2,8 "$1" | sort -k2 | grep "$2" | uniq -c | sort | tail -n1 | cut -c3,4)
+			echo "State with greatest number of incidents for $2 is in $state_name with count $state_count"
+		else
+			echo "$2 does not exist in the file, please enter a valid year."
+			exit 1
+		fi
+		;;
+
+
+	#Check whether the second argument is two capital letters, and whether is exists in the file.
+	[A-Z][A-Z])
+		if [[ $(cut -f2 "$1" | grep "$2") ]]
+		then	
+			#The argument of year_name is to find which year occurs the most in a given state
+			#The argument of year_count is to count the number of occurrences
+
+			year_name=$(cut -f2,8 "$1" | sort -k1 | grep "$2" | uniq -c | sort | tail -n1 | cut -f2)		
+			year_count=$(cut -f2,8 "$1" | sort -k1 | grep "$2" | uniq -c | sort | tail -n1 | cut -c3,4)
+			echo "Year with greatest number of incidents for $2 is in $year_name with count $year_count"
+		else
+			echo "$2 does not exist in the file, please enter a valid state."
+			exit 1
+		fi
+		;;
+	
+	#other wrong input tips
+	*)
+		echo "Please enter maxstate or maxyear or a four-digit number or two capital letter state abbreviation."
+		exit 1
+		;;
+esac
